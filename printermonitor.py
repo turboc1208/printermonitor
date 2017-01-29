@@ -8,30 +8,37 @@
 #
 ##################################
 """
+  Requires
+    A. pysnmp sudo pip install pysnmp
+       I think this is installed with the SNMP component in HA, but just in case:
+       sudo pip install pysnmp        
+
   Installation
- 
-   1. Copy this file our appdaemon application directory
-   2. Make groups in your ha configuration.yaml file as follows
-      A. input_slider.Printername_markercolor
-            input_slider.oshp1_black      # happens to be a monochrome laserjet
-            input_slider.dsp1hp_black     # inkjet color printer
-            input_slider.dsp1hp_yellow    # inkjet color printer
-            input_slider.dsp1hp_cyan      # inkjet color printer
-            input_slider.dsp1yp_magenta   # inkjet color printer
-      B. each input slider should have 
-      	    min value of 0
-      	    max value of 100
-      	    initial value of 0
-      C. setup any groups you want to display the sliders.
-      D. in your appdaemon.cfg file
-            [printermonitor]
-            module = printermonitor
-            class = printermonitor
-            PrinterAddresses = ["192.168.2.247","192.168.2.249"]
-      E. Restart HA
-    3. Requires
-      A. pysnmp         sudo pip install pysnmp  
-    
+  1. Copy this file our appdaemon application directory
+  2. Make input_sliders in your ha configuration.yaml file as follows
+    A. input_slider.Printername_markercolor
+       for example
+         input_slider.oshp1_black # happens to be a monochrome laserjet
+         input_slider.dsp1hp_black # inkjet color printer black cartridge
+         input_slider.dsp1hp_yellow # inkjet color printer yellow cartridge
+         input_slider.dsp1hp_cyan # inkjet color printer cyan cartridge
+         input_slider.dsp1yp_magenta # inkjet color printer magenta cartridge
+    B. each input slider should have 
+       min value of 0
+       max value of 100
+       initial value of 0
+    C. setup a group for each printer and put the input sliders associated with that 
+       printer in the group. Use the printer name as the group name.  For example
+       my printers are named ofhp1 (office hp 1) and dsp1hp (downstairs printer 1 HP). So
+       my groups are named ofhp1, and dsp1hp respectively.
+    D. in your appdaemon.cfg file
+      [printermonitor]
+      module = printermonitor
+      class = printermonitor
+      community = <read only community name> defaults to public
+      PrinterAddresses = ["192.168.2.247","192.168.2.249"]
+    E. Restart HA
+
 """
 ##################################  
 import appdaemon.appapi as appapi
@@ -45,6 +52,13 @@ class printermonitor(appapi.AppDaemon):
   # 
   ########################
   def initialize(self):
+    if "community" in self.args:
+      self.community=self.args["community"]
+    else:
+      self.log("community not provided in appdaemon.cfg file, defaulting to public")
+      self.community="public"
+    self.log("Community set to {}".format(self.community))
+    
     self.check_printers()
     self.run_every(self.hourly_check_handler,self.datetime(),5*60)
 
@@ -129,7 +143,7 @@ class printermonitor(appapi.AppDaemon):
        errorStatus,
        errorIndex,
        varBinds) in nextCmd(SnmpEngine(),
-                          CommunityData('public', mpModel=0),
+                          CommunityData(self.community, mpModel=0),
                           UdpTransportTarget((ipaddr, 161)),
                           ContextData(),
                           ObjectType(ObjectIdentity(oid)),
