@@ -41,10 +41,10 @@
 
 """
 ##################################  
-import appdaemon.appapi as appapi
+import my_appapi as appapi
 from pysnmp.hlapi import *
             
-class printermonitor(appapi.AppDaemon):
+class printermonitor(appapi.my_appapi):
 
   #######################
   #
