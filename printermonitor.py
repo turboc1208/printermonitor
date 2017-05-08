@@ -90,13 +90,15 @@ class printermonitor(appapi.AppDaemon):
       # because we are using nextcmd we are starting with an odi one level prior to what we need
       hostname=self.getsnmptree(ipa,self.host_name_odi)     
       result=self.getsnmptree(ipa,self.marker_base_odi)
+      num_markers=int(len(result)/8)
+      #self.log("len(result)={}".format(len(result)))
       if result=={}:
         self.log("printer ipa={} not responding".format(ipa))
         continue
       result.update(hostname)                       # combine everything together in one dictionary
       printername=result[self.printer_name_odi].strip().lower()
       self.log("hostname={}".format(printername))
-      num_markers=int((len(result)-1)/8)             # there are 8 attributes for each printer
+      #num_markers=int((len(result)-1)/8)             # there are 8 attributes for each printer
 
       low=False                                      # we are not low on ink or toner
       for i in range (1, num_markers+1):             # loop through markers could be ink or toner
