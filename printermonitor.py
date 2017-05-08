@@ -90,8 +90,17 @@ class printermonitor(appapi.AppDaemon):
       # because we are using nextcmd we are starting with an odi one level prior to what we need
       hostname=self.getsnmptree(ipa,self.host_name_odi)     
       result=self.getsnmptree(ipa,self.marker_base_odi)
-      num_markers=int(len(result)/8)
-      #self.log("len(result)={}".format(len(result)))
+      num_markers=0
+      for mkrs in result:
+        #self.log("mkrs={}".format(mkrs))
+        if mkrs.find(self.marker_base_odi+"."+self.marker_name_suffix)>=0:
+          num_markers=num_markers+1
+          #self.log("num_markers={}".format(num_markers))
+      #num_markers=0
+      #if len(result)%4==0:
+      #   num_markers=4
+      #else:
+      #   num_markers=1
       if result=={}:
         self.log("printer ipa={} not responding".format(ipa))
         continue
