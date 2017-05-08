@@ -128,7 +128,7 @@ class printermonitor(appapi.AppDaemon):
                                     (markercurrent/markercapacity)*100))
         #self.log("markerpctfull={}".format(markerpctfull))                                    
         # set values for input_sliders                            
-        self.set_state("input_slider."+printername+"_"+markername,state=markerpctfull if markerpctfull>0 else 1)
+        self.select_value("input_slider."+printername+"_"+markername,markerpctfull if markerpctfull>0 else 1)
       # outside marker loop, set group state to either low or ok ink levels
       self.set_state("group.entity_"+printername,state="Low" if low==True else "Ok")
 
