@@ -30,7 +30,7 @@
     C. setup a group for each printer and put the input sliders associated with that 
        printer in the group. Use the printer name as the group name.  For example
        my printers are named ofhp1 (office hp 1) and dsp1hp (downstairs printer 1 HP). So
-       my groups are named ofhp1, and dsp1hp respectively.
+       my groups are named entity_ofhp1, and entity_dsp1hp respectively.
     D. in your appdaemon.cfg file
       [printermonitor]
       module = printermonitor
@@ -52,6 +52,12 @@ class printermonitor(appapi.AppDaemon):
   # 
   ########################
   def initialize(self):
+    self.host_name_odi="1.3.6.1.2.1.1.5"
+    self.printer_name_odi='1.3.6.1.2.1.1.5.0'
+    self.marker_base_odi="1.3.6.1.2.1.43.11.1.1"
+    self.marker_name_suffix="6"
+    self.marker_capacity_suffix="8"
+    self.marker_current_level_suffix="9"
     if "community" in self.args:
       self.community=self.args["community"]
     else:
@@ -82,13 +88,13 @@ class printermonitor(appapi.AppDaemon):
       self.log("looking up printer {}".format(ipa))
       result={}
       # because we are using nextcmd we are starting with an odi one level prior to what we need
-      hostname=self.getsnmptree(ipa,"1.3.6.1.2.1.1.5")     
-      result=self.getsnmptree(ipa,"1.3.6.1.2.1.43.11.1.1")
+      hostname=self.getsnmptree(ipa,self.host_name_odi)     
+      result=self.getsnmptree(ipa,self.marker_base_odi)
       if result=={}:
         self.log("printer ipa={} not responding".format(ipa))
         continue
       result.update(hostname)                       # combine everything together in one dictionary
-      printername=result['1.3.6.1.2.1.1.5.0'].strip().lower()
+      printername=result[self.printer_name_odi].strip().lower()
       self.log("hostname={}".format(printername))
       num_markers=int((len(result)-1)/8)             # there are 8 attributes for each printer
 
@@ -113,18 +119,40 @@ class printermonitor(appapi.AppDaemon):
         #- input_slider.dsp1hp_cyan
         #- input_slider.dsp1hp_yellow
         #- input_slider.dsp1hp_magenta
+        
+        #prtMarkerSupplies	1.3.6.1.2.1.43.11
+        #prtMarkerSuppliesTable	1.3.6.1.2.1.43.11.1
+        #prtMarkerSuppliesEntry	1.3.6.1.2.1.43.11.1.1
+        #prtMarkerSuppliesIndex	1.3.6.1.2.1.43.11.1.1.1          - one entry here
+        #Each of the following entries is followed by either an indicator of whether
+        #it's a monocrome printer or color.  It will end in a 1.1 if it is monocrome
+        #if it's color, it will end with a .0. and a range of 1-4 one digit for each color
+        #so suppliesdescription for a color printer would look similar to this
+        # 1.3.6.1.2.1.43.11.1.1.6.0.1 black
+        # 1.3.6.1.2.1.43.11.1.1.6.0.2 Yellow
+        # 1.3.6.1.2.1.43.11.1.1.6.0.3 Cyan
+        # 1.3.6.1.2.1.43.11.1.1.6.0.4 Magenta
+        #prtMarkerSuppliesMarkerIndex	1.3.6.1.2.1.43.11.1.1.2
+        #prtMarkerSuppliesColorantIndex	1.3.6.1.2.1.43.11.1.1.3
+        #prtMarkerSuppliesClass	1.3.6.1.2.1.43.11.1.1.4
+        #prtMarkerSuppliesType	1.3.6.1.2.1.43.11.1.1.5
+        #prtMarkerSuppliesDescription	1.3.6.1.2.1.43.11.1.1.6
+        #prtMarkerSuppliesSupplyUnit	1.3.6.1.2.1.43.11.1.1.7
+        #prtMarkerSuppliesMaxCapacity	1.3.6.1.2.1.43.11.1.1.8
+        #prtMarkerSuppliesLevel	1.3.6.1.2.1.43.11.1.1.9
      
         # put odi data into variables to make later statements easier to understand and read
-        markername=result['1.3.6.1.2.1.43.11.1.1.6'+tail]
+        markername=result[self.marker_base_odi+"."+self.marker_name_suffix+tail]
         markername=markername[:markername.find(" ")]
-        markercapacity=int(result['1.3.6.1.2.1.43.11.1.1.8'+tail])
-        markercurrent=int(result['1.3.6.1.2.1.43.11.1.1.9'+tail])
+        markercapacity=int(result[self.marker_base_odi+"."+self.marker_capacity_suffix+tail])
+        markercurrent=int(result[self.marker_base_odi+"."+self.marker_current_level_suffix+tail])
         markerpctfull=int((markercurrent/markercapacity)*100)
         
         if markerpctfull < 10:         # < 10% marker means we are low on something
           low=True
           
-        self.log("{} is {:0.2f}% full".format(markername,
+        self.log("{}-{} is {:0.2f}% full".format(self.marker_base_odi+"."+self.marker_name_suffix+tail,
+                                    markername,
                                     (markercurrent/markercapacity)*100))
         #self.log("markerpctfull={}".format(markerpctfull))                                    
         # set values for input_sliders                            
