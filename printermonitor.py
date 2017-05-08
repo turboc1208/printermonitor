@@ -41,10 +41,10 @@
 
 """
 ##################################  
-import my_appapi as appapi
+import appdaemon.appapi as appapi
 from pysnmp.hlapi import *
             
-class printermonitor(appapi.my_appapi):
+class printermonitor(appapi.AppDaemon):
 
   #######################
   #
@@ -84,8 +84,10 @@ class printermonitor(appapi.my_appapi):
       # because we are using nextcmd we are starting with an odi one level prior to what we need
       hostname=self.getsnmptree(ipa,"1.3.6.1.2.1.1.5")     
       result=self.getsnmptree(ipa,"1.3.6.1.2.1.43.11.1.1")
+      if result=={}:
+        self.log("printer ipa={} not responding".format(ipa))
+        continue
       result.update(hostname)                       # combine everything together in one dictionary
-  
       printername=result['1.3.6.1.2.1.1.5.0'].strip().lower()
       self.log("hostname={}".format(printername))
       num_markers=int((len(result)-1)/8)             # there are 8 attributes for each printer
@@ -128,7 +130,7 @@ class printermonitor(appapi.my_appapi):
         # set values for input_sliders                            
         self.set_state("input_slider."+printername+"_"+markername,state=markerpctfull)
       # outside marker loop, set group state to either low or ok ink levels
-      self.set_state("group."+printername,state="Low" if low==True else "Ok")
+      self.set_state("group.entity_"+printername,state="Low" if low==True else "Ok")
 
   #################################
   #
