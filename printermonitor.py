@@ -93,7 +93,10 @@ class printermonitor(appapi.AppDaemon):
       num_markers=0
       for mkrs in result:
         self.log("mkrs={}".format(mkrs))
-        if mkrs.find(self.marker_base_odi+"."+self.marker_name_suffix)>=0:
+        namebase=mkrs.find(self.marker_base_odi+"."+self.marker_name_suffix)
+        strangevalue=mkrs[len(self.marker_base_odi+"."+self.marker_name_suffix)+1:][:1]
+        self.log("strangevalue={}".format(strangevalue))
+        if namebase>=0:
           num_markers=num_markers+1
           self.log("num_markers={}".format(num_markers))
       #num_markers=0
@@ -111,10 +114,7 @@ class printermonitor(appapi.AppDaemon):
 
       low=False                                      # we are not low on ink or toner
       for i in range (1, num_markers+1):             # loop through markers could be ink or toner
-        if num_markers==1:                           # monochrome printer
-          tail=".1."+str(i)
-        else:                                        # color printer
-          tail=".0."+str(i) 
+        tail="."+strangevalue+"."+str(i)
         
         #This is just to document the information
         #
