@@ -92,13 +92,13 @@ class printermonitor(appapi.AppDaemon):
       result=self.getsnmptree(ipa,self.marker_base_odi)
       num_markers=0
       for mkrs in result:
-        self.log("mkrs={}".format(mkrs))
+        #self.log("mkrs={}".format(mkrs))
         namebase=mkrs.find(self.marker_base_odi+"."+self.marker_name_suffix)
         strangevalue=mkrs[len(self.marker_base_odi+"."+self.marker_name_suffix)+1:][:1]
-        self.log("strangevalue={}".format(strangevalue))
+        #self.log("strangevalue={}".format(strangevalue))
         if namebase>=0:
           num_markers=num_markers+1
-          self.log("num_markers={}".format(num_markers))
+          #self.log("num_markers={}".format(num_markers))
       #num_markers=0
       #if len(result)%4==0:
       #   num_markers=4
