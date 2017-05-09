@@ -154,7 +154,7 @@ class printermonitor(appapi.AppDaemon):
      
         # put odi data into variables to make later statements easier to understand and read
         markername=result[self.marker_base_odi+"."+self.marker_name_suffix+tail]
-        markername=markername[:markername.find(" ")]
+        markername=markername[:markername.find(" ")].lower()
         markercapacity=int(result[self.marker_base_odi+"."+self.marker_capacity_suffix+tail])
         markercurrent=int(result[self.marker_base_odi+"."+self.marker_current_level_suffix+tail])
         markerpctfull=int((markercurrent/markercapacity)*100)
