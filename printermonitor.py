@@ -28,15 +28,16 @@
        max value of 100
        initial value of 0
     C. setup a group for each printer and put the input sliders associated with that 
-       printer in the group. Use the printer name as the group name.  For example
-       my printers are named ofhp1 (office hp 1) and dsp1hp (downstairs printer 1 HP). So
-       my groups are named entity_ofhp1, and entity_dsp1hp respectively.
+       printer in the group. Use the printer name in the config file to associate the
+       group with the IP address for the printer.
     D. in your appdaemon.cfg file
       [printermonitor]
       module = printermonitor
       class = printermonitor
       community = <read only community name> defaults to public
       PrinterAddresses = ["192.168.2.247","192.168.2.249"]
+      PrinterGroups = ["group.entity_dsp1hp","group.entity_ofhp1"]
+
     E. Restart HA
 
 """
@@ -82,9 +83,14 @@ class printermonitor(appapi.AppDaemon):
   #
   ########################
   def check_printers(self):
-    ipalist=eval(self.args["PrinterAddresses"])    # get ip addresses from appdaemon.cfg file
+    paddrlist=eval(self.args["PrinterAddresses"])    # get ip addresses from appdaemon.cfg file
+    pgrouplist=eval(self.args["PrinterGroups"])
     #self.log("ipalist={}".format(ipalist))
-    for ipa in ipalist:                            # loop through addresses in list
+    ipalist=[]
+    for i in range(0,len(paddrlist)):
+      ipalist.append((paddrlist[i],pgrouplist[i]))
+    self.log("ipalist={}".format(ipalist))
+    for ipa,pgroup in ipalist:                            # loop through addresses in list
       self.log("looking up printer {}".format(ipa))
       result={}
       # because we are using nextcmd we are starting with an odi one level prior to what we need
@@ -169,7 +175,8 @@ class printermonitor(appapi.AppDaemon):
         # set values for input_sliders                            
         self.select_value("input_slider."+printername+"_"+markername,markerpctfull if markerpctfull>0 else 1)
       # outside marker loop, set group state to either low or ok ink levels
-      self.set_state("group.entity_"+printername,state="Low" if low==True else "Ok")
+      self.log("setting group status to {}".format("Low" if low==True else "Ok"))
+      self.select_value(pgroup,"Low" if low==True else "Ok")
 
   #################################
   #
