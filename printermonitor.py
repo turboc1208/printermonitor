@@ -136,7 +136,7 @@ class printermonitor(appapi.AppDaemon):
         #- input_slider.dsp1hp_cyan
         #- input_slider.dsp1hp_yellow
         #- input_slider.dsp1hp_magenta
-        
+             
         #prtMarkerSupplies	1.3.6.1.2.1.43.11
         #prtMarkerSuppliesTable	1.3.6.1.2.1.43.11.1
         #prtMarkerSuppliesEntry	1.3.6.1.2.1.43.11.1.1
@@ -174,6 +174,8 @@ class printermonitor(appapi.AppDaemon):
         #self.log("markerpctfull={}".format(markerpctfull))                                    
         # set values for input_sliders                            
         self.select_value("input_slider."+printername+"_"+markername,markerpctfull if markerpctfull>0 else 1)
+        self.set_state("input_slider."+printername+"_"+markername,
+                       attributes={"friendly_name":markername+" - " + str(markerpctfull) + " %"})
       # outside marker loop, set group state to either low or ok ink levels
       self.log("setting group status to {}".format("Low" if low==True else "Ok"))
       self.select_value(pgroup,"Low" if low==True else "Ok")
