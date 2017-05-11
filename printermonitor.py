@@ -59,6 +59,9 @@ class printermonitor(appapi.AppDaemon):
     self.marker_name_suffix="6"
     self.marker_capacity_suffix="8"
     self.marker_current_level_suffix="9"
+    self.showpct=False
+    if "ShowPct" in self.args:
+      self.showpct=eval(self.args["ShowPct"])
     if "community" in self.args:
       self.community=self.args["community"]
     else:
@@ -167,18 +170,22 @@ class printermonitor(appapi.AppDaemon):
         
         if markerpctfull < 10:         # < 10% marker means we are low on something
           low=True
-          
+            
         self.log("{}-{} is {:0.2f}% full".format(self.marker_base_odi+"."+self.marker_name_suffix+tail,
                                     markername,
                                     (markercurrent/markercapacity)*100))
         #self.log("markerpctfull={}".format(markerpctfull))                                    
         # set values for input_sliders                            
         self.select_value("input_slider."+printername+"_"+markername,markerpctfull if markerpctfull>0 else 1)
+        frname=self.get_state("input_slider."+printername+"_"+markername,attribute="friendly_name")
+        pctdisp=""
+        if self.showpct:
+          pctdisp=" - " + str(markerpctfull) + " %"
         self.set_state("input_slider."+printername+"_"+markername,
-                       attributes={"friendly_name":markername+" - " + str(markerpctfull) + " %"})
+                       attributes={"friendly_name":markername+pctdisp})
       # outside marker loop, set group state to either low or ok ink levels
       self.log("setting group status to {}".format("Low" if low==True else "Ok"))
-      self.select_value(pgroup,"Low" if low==True else "Ok")
+      self.set_state(pgroup,"Low" if low==True else "Ok")
 
   #################################
   #
