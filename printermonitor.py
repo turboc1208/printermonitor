@@ -184,8 +184,8 @@ class printermonitor(appapi.AppDaemon):
         self.set_state("input_slider."+printername+"_"+markername,
                        attributes={"friendly_name":markername+pctdisp})
       # outside marker loop, set group state to either low or ok ink levels
-      self.log("setting group status to {}".format("Low" if low==True else "Ok"))
-      self.set_state(pgroup,"Low" if low==True else "Ok")
+      #self.log("setting group status to {}".format("Low" if low==True else "Ok"))
+      #self.set_state(pgroup,"Low" if low==True else "Ok")
 
   #################################
   #
