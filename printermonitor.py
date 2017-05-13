@@ -59,7 +59,7 @@ class printermonitor(appapi.AppDaemon):
     self.marker_name_suffix="6"
     self.marker_capacity_suffix="8"
     self.marker_current_level_suffix="9"
-    self.showpct=False
+    self.showpct=True
     if "ShowPct" in self.args:
       self.showpct=eval(self.args["ShowPct"])
     if "community" in self.args:
@@ -163,7 +163,8 @@ class printermonitor(appapi.AppDaemon):
      
         # put odi data into variables to make later statements easier to understand and read
         markername=result[self.marker_base_odi+"."+self.marker_name_suffix+tail]
-        markername=markername[:markername.find(" ")].lower()
+        markername=markername[:markername.find(" ")].lower().replace("-","_")
+        
         markercapacity=int(result[self.marker_base_odi+"."+self.marker_capacity_suffix+tail])
         markercurrent=int(result[self.marker_base_odi+"."+self.marker_current_level_suffix+tail])
         markerpctfull=int((markercurrent/markercapacity)*100)
