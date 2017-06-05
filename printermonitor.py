@@ -60,8 +60,8 @@ class printermonitor(appapi.AppDaemon):
     self.marker_capacity_suffix="8"
     self.marker_current_level_suffix="9"
     self.showpct=True
-    if "ShowPct" in self.args:
-      self.showpct=eval(self.args["ShowPct"])
+    if "showpct" in self.args:
+      self.showpct=eval(self.args["showpct"])
     if "community" in self.args:
       self.community=self.args["community"]
     else:
@@ -86,8 +86,8 @@ class printermonitor(appapi.AppDaemon):
   #
   ########################
   def check_printers(self):
-    paddrlist=eval(self.args["PrinterAddresses"])    # get ip addresses from appdaemon.cfg file
-    pgrouplist=eval(self.args["PrinterGroups"])
+    paddrlist=eval(self.args["printeraddresses"])    # get ip addresses from appdaemon.cfg file
+    pgrouplist=eval(self.args["printergroups"])
     #self.log("ipalist={}".format(ipalist))
     ipalist=[]
     for i in range(0,len(paddrlist)):
