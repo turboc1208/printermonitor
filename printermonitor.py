@@ -70,7 +70,7 @@ class printermonitor(appapi.AppDaemon):
     self.log("Community set to {}".format(self.community))
     
     self.check_printers()
-    self.run_every(self.hourly_check_handler,self.datetime(),5*60)
+#    self.run_every(self.hourly_check_handler,self.datetime(),5*60)
 
   #######################
   #
@@ -101,10 +101,10 @@ class printermonitor(appapi.AppDaemon):
       result=self.getsnmptree(ipa,self.marker_base_odi)
       num_markers=0
       for mkrs in result:
-        #self.log("mkrs={}".format(mkrs))
+        self.log("mkrs={}".format(mkrs))
         namebase=mkrs.find(self.marker_base_odi+"."+self.marker_name_suffix)
         strangevalue=mkrs[len(self.marker_base_odi+"."+self.marker_name_suffix)+1:][:1]
-        #self.log("strangevalue={}".format(strangevalue))
+        self.log("strangevalue={}".format(strangevalue))
         if namebase>=0:
           num_markers=num_markers+1
           #self.log("num_markers={}".format(num_markers))
@@ -185,7 +185,7 @@ class printermonitor(appapi.AppDaemon):
         self.set_state("input_slider."+printername+"_"+markername,
                        attributes={"friendly_name":markername+pctdisp})
       # outside marker loop, set group state to either low or ok ink levels
-      #self.log("setting group status to {}".format("Low" if low==True else "Ok"))
+      self.log("setting group status to {}".format("Low" if low==True else "Ok"))
       #self.set_state(pgroup,"Low" if low==True else "Ok")
 
   #################################
