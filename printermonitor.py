@@ -15,14 +15,14 @@
 
   Installation
   1. Copy this file our appdaemon application directory
-  2. Make input_sliders in your ha configuration.yaml file as follows
-    A. input_slider.Printername_markercolor
+  2. Make input_numbers in your ha configuration.yaml file as follows
+    A. input_number.Printername_markercolor
        for example
-         input_slider.oshp1_black # happens to be a monochrome laserjet
-         input_slider.dsp1hp_black # inkjet color printer black cartridge
-         input_slider.dsp1hp_yellow # inkjet color printer yellow cartridge
-         input_slider.dsp1hp_cyan # inkjet color printer cyan cartridge
-         input_slider.dsp1yp_magenta # inkjet color printer magenta cartridge
+         input_number.oshp1_black # happens to be a monochrome laserjet
+         input_number.dsp1hp_black # inkjet color printer black cartridge
+         input_number.dsp1hp_yellow # inkjet color printer yellow cartridge
+         input_number.dsp1hp_cyan # inkjet color printer cyan cartridge
+         input_number.dsp1yp_magenta # inkjet color printer magenta cartridge
     B. each input slider should have 
        min value of 0
        max value of 100
@@ -42,10 +42,12 @@
 
 """
 ##################################  
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
+import datetime
+import time
 from pysnmp.hlapi import *
             
-class printermonitor(appapi.AppDaemon):
+class printermonitor(hass.Hass):
 
   #######################
   #
@@ -70,7 +72,10 @@ class printermonitor(appapi.AppDaemon):
     self.log("Community set to {}".format(self.community))
     
     self.check_printers()
-#    self.run_every(self.hourly_check_handler,self.datetime(),5*60)
+    self.log("check_printers has run")
+    self.run_every(self.hourly_check_handler,self.datetime(),5*60)
+    #self.run_every(self.hourly_check_handler,datetime.now(),5*60)
+    self.log("initialization compleete")
 
   #######################
   #
@@ -92,7 +97,7 @@ class printermonitor(appapi.AppDaemon):
     ipalist=[]
     for i in range(0,len(paddrlist)):
       ipalist.append((paddrlist[i],pgrouplist[i]))
-    self.log("ipalist={}".format(ipalist))
+    #self.log("ipalist={}".format(ipalist))
     for ipa,pgroup in ipalist:                            # loop through addresses in list
       self.log("looking up printer {}".format(ipa))
       result={}
@@ -104,10 +109,10 @@ class printermonitor(appapi.AppDaemon):
         self.log("mkrs={}".format(mkrs))
         namebase=mkrs.find(self.marker_base_odi+"."+self.marker_name_suffix)
         strangevalue=mkrs[len(self.marker_base_odi+"."+self.marker_name_suffix)+1:][:1]
-        self.log("strangevalue={}".format(strangevalue))
+        #self.log("strangevalue={}".format(strangevalue))
         if namebase>=0:
           num_markers=num_markers+1
-          #self.log("num_markers={}".format(num_markers))
+          self.log("num_markers={}".format(num_markers))
       #num_markers=0
       #if len(result)%4==0:
       #   num_markers=4
@@ -135,10 +140,10 @@ class printermonitor(appapi.AppDaemon):
         
         #
         # This is what our input sliders are called
-        #- input_slider.dsp1hp_black
-        #- input_slider.dsp1hp_cyan
-        #- input_slider.dsp1hp_yellow
-        #- input_slider.dsp1hp_magenta
+        #- input_number.dsp1hp_black
+        #- input_number.dsp1hp_cyan
+        #- input_number.dsp1hp_yellow
+        #- input_number.dsp1hp_magenta
              
         #prtMarkerSupplies	1.3.6.1.2.1.43.11
         #prtMarkerSuppliesTable	1.3.6.1.2.1.43.11.1
@@ -175,17 +180,21 @@ class printermonitor(appapi.AppDaemon):
         self.log("{}-{} is {:0.2f}% full".format(self.marker_base_odi+"."+self.marker_name_suffix+tail,
                                     markername,
                                     (markercurrent/markercapacity)*100))
-        #self.log("markerpctfull={}".format(markerpctfull))                                    
-        # set values for input_sliders                            
-        self.select_value("input_slider."+printername+"_"+markername,markerpctfull if markerpctfull>0 else 1)
-        frname=self.get_state("input_slider."+printername+"_"+markername,attribute="friendly_name")
+        self.log("markerpctfull={}".format(markerpctfull))                                    
+        # set values for input_numbers
+        entity_name="input_number." + printername + "_" + markername
+        self.log("{} = {}".format(entity_name,markerpctfull if markerpctfull>0 else 1))
+        self.set_value(entity_name,markerpctfull if markerpctfull>0 else 1)
+        self.log("Value set")
+        frname=self.get_state(entity_name,attribute="friendly_name")
+        self.log("frname={}".format(frname))
         pctdisp=""
         if self.showpct:
           pctdisp=" - " + str(markerpctfull) + " %"
-        self.set_state("input_slider."+printername+"_"+markername,
+        self.set_state(entity_name,
                        attributes={"friendly_name":markername+pctdisp})
       # outside marker loop, set group state to either low or ok ink levels
-      self.log("setting group status to {}".format("Low" if low==True else "Ok"))
+      #self.log("setting group status to {}".format("Low" if low==True else "Ok"))
       #self.set_state(pgroup,"Low" if low==True else "Ok")
 
   #################################
