@@ -184,9 +184,11 @@ class printermonitor(hass.Hass):
                                     (markercurrent/markercapacity)*100))
         self.log("markerpctfull={}".format(markerpctfull))                                    
         # set values for input_numbers
-        entity_name="input_number." + printername + "_" + markername
+        #entity_name="input_number." + printername + "_" + markername
+        entity_name="sensor." + printername + "_" + markername
         self.log("{} = {}".format(entity_name,markerpctfull if markerpctfull>0 else 1))
-        self.set_value(entity_name,markerpctfull if markerpctfull>0 else 1)
+        #self.set_value(entity_name,markerpctfull if markerpctfull>0 else 1)
+        self.set_state(entity_name,state=markerpctfull if markerpctfull>0 else 1)
         self.log("Value set")
         frname=self.get_state(entity_name,attribute="friendly_name")
         self.log("frname={}".format(frname))
