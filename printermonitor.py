@@ -27,18 +27,15 @@
        min value of 0
        max value of 100
        initial value of 0
-    C. setup a group for each printer and put the input sliders associated with that 
-       printer in the group. Use the printer name in the config file to associate the
-       group with the IP address for the printer.
-    D. in your appdaemon.cfg file
-      [printermonitor]
-      module = printermonitor
-      class = printermonitor
-      community = <read only community name> defaults to public
-      PrinterAddresses = ["192.168.2.247","192.168.2.249"]
-      PrinterGroups = ["group.entity_dsp1hp","group.entity_ofhp1"]
-
-    E. Restart HA
+    D. in your apps.yaml file
+       printermonitor:
+         class: printermonitor
+         module: printermonitor
+         printeraddresses: '["aaa.bbb.ccc.def","aaa.bbb.ccc.deg"]'
+         printergroups: '["group.entity_dsp1hp","group.entity_ofhp1"]'
+         showpct: 'False'
+         priority: 8
+    E. Restart HomeAssistant
 
 """
 ##################################  
@@ -46,7 +43,14 @@ import appdaemon.plugins.hass.hassapi as hass
 import datetime
 import time
 from pysnmp.hlapi import *
-            
+
+import inspect
+import os
+import json
+
+
+
+
 class printermonitor(hass.Hass):
 
   #######################
@@ -73,7 +77,7 @@ class printermonitor(hass.Hass):
     
     self.check_printers()
     self.log("check_printers has run")
-    self.run_every(self.hourly_check_handler,self.datetime(),5*60)
+    self.run_every(self.hourly_check_handler,self.now(),5*60)
     #self.run_every(self.hourly_check_handler,datetime.now(),5*60)
     self.log("initialization compleete")
 
@@ -182,9 +186,11 @@ class printermonitor(hass.Hass):
                                     (markercurrent/markercapacity)*100))
         self.log("markerpctfull={}".format(markerpctfull))                                    
         # set values for input_numbers
-        entity_name="input_number." + printername + "_" + markername
+        #entity_name="input_number." + printername + "_" + markername
+        entity_name="sensor." + printername + "_" + markername
         self.log("{} = {}".format(entity_name,markerpctfull if markerpctfull>0 else 1))
-        self.set_value(entity_name,markerpctfull if markerpctfull>0 else 1)
+        #self.set_value(entity_name,markerpctfull if markerpctfull>0 else 1)
+        self.set_state(entity_name,state=markerpctfull if markerpctfull>0 else 1)
         self.log("Value set")
         frname=self.get_state(entity_name,attribute="friendly_name")
         self.log("frname={}".format(frname))
@@ -233,3 +239,7 @@ class printermonitor(hass.Hass):
         #print("resultDict={}\n",format(resultDict))
         varBinds={}
     return(resultDict)     # return our dictionary
+
+  def now(self):
+    return(self.datetime()+datetime.timedelta(seconds=2))
+
